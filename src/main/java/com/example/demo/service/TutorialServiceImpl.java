@@ -1,12 +1,17 @@
 package com.example.demo.service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.model.Tutorial;
 import com.example.demo.repository.TutorialRepository;
+import com.example.demo.utils.Utils;
 
 @Service
 public class TutorialServiceImpl implements TutorialService {
@@ -18,22 +23,39 @@ public class TutorialServiceImpl implements TutorialService {
     }
 
     @Override
-    public List<Tutorial> findByPublished(boolean published) {
-        return this.tutorialRepository.findByPublished(published);
+    public Object findByPublished(boolean published, int page, int size) {
+
+        Pageable paging = PageRequest.of(page, size);
+
+        Page<Tutorial> data = this.tutorialRepository.findByPublished(published, paging);
+
+        return Utils.setDataPagination(data);
     }
 
     @Override
-    public List<Tutorial> findByTitleContaining(String title) {
-        return this.tutorialRepository.findByTitleContaining(title);
+    public Object findByTitleContaining(String title, int page, int size) {
+
+        Pageable paging = PageRequest.of(page, size);
+
+        Page<Tutorial> data = this.tutorialRepository.findByTitleContaining(title, paging);
+
+        return Utils.setDataPagination(data);
     }
 
     @Override
-    public List<Tutorial> getAllTutorials(String title) {
+    public Object getAllTutorials(String title, int page, int size) {
+
+        Pageable paging = PageRequest.of(page, size);
+
+        Page<Tutorial> data;
+
         if (title == null) {
-            return this.tutorialRepository.findAll();
+            data = this.tutorialRepository.findAll(paging);
+        } else {
+            data = this.tutorialRepository.findByTitleContaining(title, paging);
         }
 
-        return this.tutorialRepository.findByTitleContaining(title);
+        return Utils.setDataPagination(data);
     }
 
     @Override

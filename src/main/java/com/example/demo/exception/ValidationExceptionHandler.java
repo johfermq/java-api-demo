@@ -11,6 +11,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import com.example.demo.handler.ResponseHandler;
+
 import jakarta.servlet.http.HttpServletRequest;
 
 @ControllerAdvice
@@ -25,6 +27,10 @@ public class ValidationExceptionHandler {
         Map<String, List<String>> result = new HashMap<>();
         result.put("errors", errors);
 
-        return new ResponseEntity<>(result, HttpStatus.UNPROCESSABLE_ENTITY);
+        return ResponseHandler.setResponse(
+                ResponseHandler.FAILED,
+                HttpStatus.UNPROCESSABLE_ENTITY,
+                result,
+                "Unprocessable Entity");
     }
 }

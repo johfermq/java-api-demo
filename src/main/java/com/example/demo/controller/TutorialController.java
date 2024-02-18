@@ -1,7 +1,5 @@
 package com.example.demo.controller;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
@@ -16,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.demo.handler.ResponseHandler;
 import com.example.demo.model.Tutorial;
 import com.example.demo.request.TutorialRequest;
 import com.example.demo.service.TutorialService;
@@ -33,77 +32,143 @@ public class TutorialController {
     }
 
     @GetMapping("/tutorials")
-    public ResponseEntity<List<Tutorial>> getAllTutorials(@RequestParam(required = false) String title) {
+    public ResponseEntity<Object> getAllTutorials(@RequestParam(required = false) String title,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size) {
         try {
-            List<Tutorial> tutorials = new ArrayList<>();
+            Object response = this.tutorialService.getAllTutorials(title, page, size);
 
-            this.tutorialService.getAllTutorials(title).forEach(tutorials::add);
-
-            return new ResponseEntity<>(tutorials, HttpStatus.OK);
+            return ResponseHandler.setResponse(
+                    ResponseHandler.SUCCESSFULLY,
+                    HttpStatus.OK,
+                    response,
+                    "");
         } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseHandler.setResponse(
+                    ResponseHandler.FAILED,
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    null,
+                    e.getMessage());
         }
     }
 
     @PostMapping("/tutorials")
-    public ResponseEntity<Tutorial> createTutorial(@Valid @RequestBody TutorialRequest tutorial) {
+    public ResponseEntity<Object> createTutorial(@Valid @RequestBody TutorialRequest tutorial) {
         try {
             Tutorial tutorialSaved = this.tutorialService
                     .save(new Tutorial(tutorial.getTitle(), tutorial.getDescription(), false));
 
-            return new ResponseEntity<>(tutorialSaved, HttpStatus.CREATED);
+            return ResponseHandler.setResponse(
+                    ResponseHandler.SUCCESSFULLY,
+                    HttpStatus.CREATED,
+                    tutorialSaved,
+                    "");
         } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseHandler.setResponse(
+                    ResponseHandler.FAILED,
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    null,
+                    e.getMessage());
         }
     }
 
     @GetMapping("/tutorials/{id}")
-    public ResponseEntity<Tutorial> getTutorialById(@PathVariable("id") long id) {
-        Optional<Tutorial> tutorialData = this.tutorialService.findById(id);
+    public ResponseEntity<Object> getTutorialById(@PathVariable("id") long id) {
+        try {
+            Optional<Tutorial> tutorialData = this.tutorialService.findById(id);
 
-        if (tutorialData.isPresent()) {
-            return new ResponseEntity<>(tutorialData.get(), HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            if (tutorialData.isPresent()) {
+                return ResponseHandler.setResponse(
+                        ResponseHandler.SUCCESSFULLY,
+                        HttpStatus.OK,
+                        tutorialData.get(),
+                        "");
+            } else {
+                return ResponseHandler.setResponse(
+                        ResponseHandler.FAILED,
+                        HttpStatus.NOT_FOUND,
+                        tutorialData,
+                        "Not found");
+            }
+        } catch (Exception e) {
+            return ResponseHandler.setResponse(
+                    ResponseHandler.FAILED,
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    null,
+                    e.getMessage());
         }
     }
 
     @PutMapping("/tutorials/{id}")
-    public ResponseEntity<Tutorial> updateTutorial(@PathVariable("id") long id,
+    public ResponseEntity<Object> updateTutorial(@PathVariable("id") long id,
             @Valid @RequestBody TutorialRequest tutorial) {
-        Optional<Tutorial> tutorialData = this.tutorialService.findById(id);
 
-        if (tutorialData.isPresent()) {
-            Tutorial myTutorial = tutorialData.get();
-            myTutorial.setTitle(tutorial.getTitle());
-            myTutorial.setDescription(tutorial.getDescription());
-            myTutorial.setPublished(tutorial.isPublished());
+        try {
+            Optional<Tutorial> tutorialData = this.tutorialService.findById(id);
 
-            return new ResponseEntity<>(this.tutorialService.save(myTutorial), HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            if (tutorialData.isPresent()) {
+                Tutorial myTutorial = tutorialData.get();
+                myTutorial.setTitle(tutorial.getTitle());
+                myTutorial.setDescription(tutorial.getDescription());
+                myTutorial.setPublished(tutorial.isPublished());
+
+                return ResponseHandler.setResponse(
+                        ResponseHandler.SUCCESSFULLY,
+                        HttpStatus.OK,
+                        this.tutorialService.save(myTutorial),
+                        "");
+            } else {
+                return ResponseHandler.setResponse(
+                        ResponseHandler.FAILED,
+                        HttpStatus.NOT_FOUND,
+                        tutorialData,
+                        "Not found");
+            }
+        } catch (Exception e) {
+            return ResponseHandler.setResponse(
+                    ResponseHandler.FAILED,
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    null,
+                    e.getMessage());
         }
     }
 
     @DeleteMapping("/tutorials/{id}")
-    public ResponseEntity<HttpStatus> deleteTutorial(@PathVariable("id") long id) {
+    public ResponseEntity<Object> deleteTutorial(@PathVariable("id") long id) {
         try {
             this.tutorialService.deleteById(id);
 
-            return new ResponseEntity<>(HttpStatus.OK);
+            return ResponseHandler.setResponse(
+                    ResponseHandler.SUCCESSFULLY,
+                    HttpStatus.OK,
+                    null,
+                    "");
         } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseHandler.setResponse(
+                    ResponseHandler.FAILED,
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    null,
+                    e.getMessage());
         }
     }
 
     @GetMapping("/tutorials/published")
-    public ResponseEntity<List<Tutorial>> findByPublished() {
+    public ResponseEntity<Object> findByPublished(@RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size) {
         try {
-            List<Tutorial> tutorials = this.tutorialService.findByPublished(true);
+            Object response = this.tutorialService.findByPublished(true, page, size);
 
-            return new ResponseEntity<>(tutorials, HttpStatus.OK);
+            return ResponseHandler.setResponse(
+                    ResponseHandler.SUCCESSFULLY,
+                    HttpStatus.OK,
+                    response,
+                    "");
         } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseHandler.setResponse(
+                    ResponseHandler.FAILED,
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    null,
+                    e.getMessage());
         }
     }
 

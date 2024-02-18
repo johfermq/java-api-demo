@@ -1,16 +1,16 @@
 package com.example.demo.service;
 
-import java.util.List;
 import java.util.Optional;
 
 import com.example.demo.model.Tutorial;
 
 public interface TutorialService {
-    List<Tutorial> findByPublished(boolean published);
 
-    List<Tutorial> findByTitleContaining(String title);
+    Object findByPublished(boolean published, int page, int size);
 
-    List<Tutorial> getAllTutorials(String title);
+    Object findByTitleContaining(String title, int page, int size);
+
+    Object getAllTutorials(String title, int page, int size);
 
     Optional<Tutorial> findById(long id);
 
