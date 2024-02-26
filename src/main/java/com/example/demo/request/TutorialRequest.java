@@ -14,8 +14,14 @@ public class TutorialRequest {
 
     private Boolean published;
 
+    private String source;
+
     public String getTitle() {
         return title;
+    }
+
+    public String getSource() {
+        return source;
     }
 
     public String getDescription() {
@@ -36,6 +42,10 @@ public class TutorialRequest {
 
     public void setPublished(Boolean published) {
         this.published = published;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
     }
 
 }

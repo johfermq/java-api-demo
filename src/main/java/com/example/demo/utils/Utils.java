@@ -1,6 +1,7 @@
 package com.example.demo.utils;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.data.domain.Page;
@@ -10,8 +11,8 @@ public class Utils {
     public Utils() {
     }
 
-    public static Object setDataPagination(Page<?> page) {
-        Object data = page.getContent();
+    public static Map<String, Object> setDataPagination(Page<?> page) {
+        List<?> data = page.getContent();
 
         Map<String, Object> response = new HashMap<>();
         response.put("data", data);

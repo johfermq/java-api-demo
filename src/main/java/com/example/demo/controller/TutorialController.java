@@ -56,7 +56,7 @@ public class TutorialController {
     public ResponseEntity<Object> createTutorial(@Valid @RequestBody TutorialRequest tutorial) {
         try {
             Tutorial tutorialSaved = this.tutorialService
-                    .save(new Tutorial(tutorial.getTitle(), tutorial.getDescription(), false));
+                    .save(new Tutorial(tutorial.getTitle(), tutorial.getDescription(), false, tutorial.getSource()));
 
             return ResponseHandler.setResponse(
                     ResponseHandler.SUCCESSFULLY,

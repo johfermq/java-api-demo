@@ -1,7 +1,6 @@
 package com.example.demo.service;
 
-import java.util.HashMap;
-import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -43,7 +42,7 @@ public class TutorialServiceImpl implements TutorialService {
     }
 
     @Override
-    public Object getAllTutorials(String title, int page, int size) {
+    public Map<String, Object> getAllTutorials(String title, int page, int size) {
 
         Pageable paging = PageRequest.of(page, size);
 
