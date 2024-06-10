@@ -1,5 +1,9 @@
 package com.example.demo.model;
 
+import java.io.Serializable;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,7 +20,9 @@ import lombok.ToString;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "tutorials")
-public class Tutorial {
+public class Tutorial implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -29,15 +35,13 @@ public class Tutorial {
     private String description;
 
     @Column(name = "published")
-    private boolean published;
+    private Boolean published;
 
-    @Column(name = "source")
-    private String source;
+    @Column(name = "category_id")
+    private Long categoryId;
 
-    public Tutorial(String title, String description, boolean published, String source) {
-        this.title = title;
-        this.description = description;
-        this.published = published;
-        this.source = source;
-    }
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id", referencedColumnName = "id", insertable = false, updatable = false)
+    @JsonIgnoreProperties(value = { "applications", "hibernateLazyInitializer" })
+    private Category category;
 }

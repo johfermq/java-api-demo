@@ -14,10 +14,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.demo.dto.PagingDto;
+import com.example.demo.dto.ResponseDto;
 import com.example.demo.handler.ResponseHandler;
 import com.example.demo.model.Tutorial;
 import com.example.demo.request.TutorialRequest;
 import com.example.demo.service.TutorialService;
+import com.example.demo.specifications.GetAllTutorialsSpecification;
 
 import jakarta.validation.Valid;
 
@@ -32,19 +35,22 @@ public class TutorialController {
     }
 
     @GetMapping("/tutorials")
-    public ResponseEntity<Object> getAllTutorials(@RequestParam(required = false) String title,
+    public ResponseEntity<ResponseDto<PagingDto<Tutorial>>> getAllTutorials(
+            @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size) {
         try {
-            Object response = this.tutorialService.getAllTutorials(title, page, size);
+            GetAllTutorialsSpecification specification = new GetAllTutorialsSpecification(search);
 
-            return ResponseHandler.setResponse(
+            PagingDto<Tutorial> response = this.tutorialService.getAllTutorials(specification, page, size);
+
+            return ResponseHandler.<PagingDto<Tutorial>>setResponse(
                     ResponseHandler.SUCCESSFULLY,
                     HttpStatus.OK,
                     response,
                     "");
         } catch (Exception e) {
-            return ResponseHandler.setResponse(
+            return ResponseHandler.<PagingDto<Tutorial>>setResponse(
                     ResponseHandler.FAILED,
                     HttpStatus.INTERNAL_SERVER_ERROR,
                     null,
@@ -53,18 +59,21 @@ public class TutorialController {
     }
 
     @PostMapping("/tutorials")
-    public ResponseEntity<Object> createTutorial(@Valid @RequestBody TutorialRequest tutorial) {
+    public ResponseEntity<ResponseDto<Tutorial>> createTutorial(@Valid @RequestBody TutorialRequest request) {
         try {
+            Boolean published = request.getPublished();
             Tutorial tutorialSaved = this.tutorialService
-                    .save(new Tutorial(tutorial.getTitle(), tutorial.getDescription(), false, tutorial.getSource()));
+                    .save(Tutorial.builder().title(request.getTitle()).description(request.getDescription())
+                            .published(published != null && published).categoryId(request.getCategoryId())
+                            .build());
 
-            return ResponseHandler.setResponse(
+            return ResponseHandler.<Tutorial>setResponse(
                     ResponseHandler.SUCCESSFULLY,
                     HttpStatus.CREATED,
                     tutorialSaved,
                     "");
         } catch (Exception e) {
-            return ResponseHandler.setResponse(
+            return ResponseHandler.<Tutorial>setResponse(
                     ResponseHandler.FAILED,
                     HttpStatus.INTERNAL_SERVER_ERROR,
                     null,
@@ -73,25 +82,25 @@ public class TutorialController {
     }
 
     @GetMapping("/tutorials/{id}")
-    public ResponseEntity<Object> getTutorialById(@PathVariable("id") long id) {
+    public ResponseEntity<ResponseDto<Tutorial>> getTutorialById(@PathVariable("id") long id) {
         try {
             Optional<Tutorial> tutorialData = this.tutorialService.findById(id);
 
             if (tutorialData.isPresent()) {
-                return ResponseHandler.setResponse(
+                return ResponseHandler.<Tutorial>setResponse(
                         ResponseHandler.SUCCESSFULLY,
                         HttpStatus.OK,
                         tutorialData.get(),
                         "");
             } else {
-                return ResponseHandler.setResponse(
+                return ResponseHandler.<Tutorial>setResponse(
                         ResponseHandler.FAILED,
                         HttpStatus.NOT_FOUND,
-                        tutorialData,
+                        null,
                         "Not found");
             }
         } catch (Exception e) {
-            return ResponseHandler.setResponse(
+            return ResponseHandler.<Tutorial>setResponse(
                     ResponseHandler.FAILED,
                     HttpStatus.INTERNAL_SERVER_ERROR,
                     null,
@@ -100,7 +109,7 @@ public class TutorialController {
     }
 
     @PutMapping("/tutorials/{id}")
-    public ResponseEntity<Object> updateTutorial(@PathVariable("id") long id,
+    public ResponseEntity<ResponseDto<Tutorial>> updateTutorial(@PathVariable("id") long id,
             @Valid @RequestBody TutorialRequest tutorial) {
 
         try {
@@ -110,18 +119,18 @@ public class TutorialController {
                 Tutorial myTutorial = tutorialData.get();
                 myTutorial.setTitle(tutorial.getTitle());
                 myTutorial.setDescription(tutorial.getDescription());
-                myTutorial.setPublished(tutorial.isPublished());
+                myTutorial.setPublished(tutorial.getPublished());
 
-                return ResponseHandler.setResponse(
+                return ResponseHandler.<Tutorial>setResponse(
                         ResponseHandler.SUCCESSFULLY,
                         HttpStatus.OK,
                         this.tutorialService.save(myTutorial),
                         "");
             } else {
-                return ResponseHandler.setResponse(
+                return ResponseHandler.<Tutorial>setResponse(
                         ResponseHandler.FAILED,
                         HttpStatus.NOT_FOUND,
-                        tutorialData,
+                        null,
                         "Not found");
             }
         } catch (Exception e) {
@@ -134,7 +143,7 @@ public class TutorialController {
     }
 
     @DeleteMapping("/tutorials/{id}")
-    public ResponseEntity<Object> deleteTutorial(@PathVariable("id") long id) {
+    public ResponseEntity<ResponseDto<Tutorial>> deleteTutorial(@PathVariable("id") long id) {
         try {
             this.tutorialService.deleteById(id);
 
@@ -153,18 +162,18 @@ public class TutorialController {
     }
 
     @GetMapping("/tutorials/published")
-    public ResponseEntity<Object> findByPublished(@RequestParam(defaultValue = "0") int page,
+    public ResponseEntity<ResponseDto<PagingDto<Tutorial>>> findByPublished(@RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size) {
         try {
-            Object response = this.tutorialService.findByPublished(true, page, size);
+            PagingDto<Tutorial> response = this.tutorialService.findByPublished(true, page, size);
 
-            return ResponseHandler.setResponse(
+            return ResponseHandler.<PagingDto<Tutorial>>setResponse(
                     ResponseHandler.SUCCESSFULLY,
                     HttpStatus.OK,
                     response,
                     "");
         } catch (Exception e) {
-            return ResponseHandler.setResponse(
+            return ResponseHandler.<PagingDto<Tutorial>>setResponse(
                     ResponseHandler.FAILED,
                     HttpStatus.INTERNAL_SERVER_ERROR,
                     null,

@@ -1,11 +1,11 @@
 package com.example.demo.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,49 +21,50 @@ import org.springframework.test.web.servlet.MvcResult;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.example.demo.dto.PagingDto;
+import com.example.demo.model.Category;
 import com.example.demo.model.Tutorial;
 import com.example.demo.service.TutorialService;
 
 @WebMvcTest(TutorialController.class)
 class TutorialControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+        @Autowired
+        private MockMvc mockMvc;
 
-    @MockBean
-    TutorialService tutorialService;
+        @MockBean
+        TutorialService tutorialService;
 
-    @BeforeEach
-    void setUp() {
-        List<Tutorial> tutorials = new ArrayList<Tutorial>();
-        tutorials.add(Tutorial.builder()
-                .id(1)
-                .title("title test")
-                .description("description test")
-                .published(true)
-                .source("source test")
-                .build());
+        @BeforeEach
+        void setUp() {
+                List<Tutorial> tutorials = new ArrayList<Tutorial>();
+                tutorials.add(Tutorial.builder()
+                                .id(1)
+                                .title("title test")
+                                .description("description test")
+                                .published(true)
+                                .categoryId(1L)
+                                .category(Category.builder().id(1L).name("category test").build())
+                                .build());
 
-        Map<String, Object> data = new HashMap<>();
-        data.put("data", tutorials);
-        data.put("currentPage", 0);
-        data.put("totalItems", 1);
-        data.put("totalPages", 1);
+                PagingDto<Tutorial> paging = PagingDto.<Tutorial>builder().currentPage(0).totalItems(1).totalPages(1)
+                                .data(tutorials).build();
 
-        Mockito.when(this.tutorialService.getAllTutorials(null, 0, 5)).thenReturn(data);
-    }
+                Mockito.when(this.tutorialService.getAllTutorials(any(), anyInt(), anyInt())).thenReturn(paging);
+        }
 
-    @SuppressWarnings("null")
-    @Test
-    @DisplayName("Prueba para obtener la respuesta de todos los tutoriales paginados")
-    void testGetAllTutorials() throws Exception {
-        MvcResult result = this.mockMvc.perform(
-                get("/api/tutorials")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andReturn();
+        @Test
+        @DisplayName("Prueba para obtener la respuesta de todos los tutoriales paginados")
+        void testGetAllTutorials() throws Exception {
 
-        assertEquals(result.getResponse().getContentAsString(),
-                "{\"data\":{\"totalItems\":1,\"data\":[{\"id\":1,\"title\":\"title test\",\"description\":\"description test\",\"published\":true,\"source\":\"source test\"}],\"totalPages\":1,\"currentPage\":0},\"message\":\"Successfully!\",\"error\":\"\",\"status\":200}");
-    }
+                MvcResult result = this.mockMvc.perform(
+                                get("/api/tutorials")
+                                                .contentType(MediaType.APPLICATION_JSON).param("page", "0")
+                                                .param("size", "5").param("search", ""))
+                                .andExpect(status().isOk())
+                                .andReturn();
+
+                assertEquals("{\"status\":200,\"message\":\"Successfully!\",\"error\":\"\",\"data\":{\"currentPage\":0,\"totalItems\":1,\"totalPages\":1,\"data\":[{\"id\":1,\"title\":\"title test\",\"description\":\"description test\",\"published\":true,\"categoryId\":1,\"category\":{\"id\":1,\"name\":\"category test\"}}]}}",
+                                result.getResponse().getContentAsString());
+        }
 }

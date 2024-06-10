@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -18,8 +17,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 
+import com.example.demo.dto.PagingDto;
+import com.example.demo.model.Category;
 import com.example.demo.model.Tutorial;
 import com.example.demo.repository.TutorialRepository;
+import com.example.demo.specifications.GetAllTutorialsSpecification;
 
 @ActiveProfiles("test")
 @SpringBootTest
@@ -31,19 +33,25 @@ class TutorialServiceTest {
     @MockBean
     TutorialRepository tutorialRepository;
 
+    private GetAllTutorialsSpecification specification;
+
     @BeforeEach
     void setUp() {
+        this.specification = new GetAllTutorialsSpecification("title test");
+
         List<Tutorial> tutorials = new ArrayList<Tutorial>();
         tutorials.add(Tutorial.builder()
                 .title("title test")
                 .description("description test")
                 .published(true)
-                .source("source test")
+                .categoryId(1L)
+                .category(Category.builder().id(1L).name("category test").build())
                 .build());
 
         Pageable pageable = PageRequest.of(0, 5);
 
-        Mockito.when(this.tutorialRepository.findAll(pageable)).thenReturn(new PageImpl<Tutorial>(tutorials, pageable, 1));
+        Mockito.when(this.tutorialRepository.findAll(this.specification, pageable))
+                .thenReturn(new PageImpl<Tutorial>(tutorials, pageable, 1));
 
         Mockito.when(this.tutorialRepository.findByTitleContaining("title test", pageable))
                 .thenReturn(new PageImpl<Tutorial>(tutorials, pageable, 1));
@@ -52,24 +60,23 @@ class TutorialServiceTest {
     @Test
     @DisplayName("Prueba para obtener todos los tutoriales paginados")
     void testGetAllTutorials() {
-        Map<String, Object> data = this.tutorialService.getAllTutorials(null, 0, 5);
+        PagingDto<Tutorial> data = this.tutorialService.getAllTutorials(this.specification, 0, 5);
 
-        assertNotNull(data.get("data"));
-        assertEquals("0", data.get("currentPage").toString());
-        assertEquals("1", data.get("totalItems").toString());
-        assertEquals("1", data.get("totalPages").toString());
+        assertNotNull(data.getData());
+        assertNotNull(data.getData().get(0).getCategory());
+        assertEquals(0, data.getCurrentPage());
+        assertEquals(1, data.getTotalItems());
+        assertEquals(1, data.getTotalPages());
     }
 
     @Test
     @DisplayName("Prueba para obtener todos los tutoriales por titulo paginados")
     void testGetAllTutorialsByTitle() {
-        String title = "title test";
+        PagingDto<Tutorial> data = this.tutorialService.getAllTutorials(this.specification, 0, 5);
 
-        Map<String, Object> data = this.tutorialService.getAllTutorials(title, 0, 5);
-
-        assertNotNull(data.get("data"));
-        assertEquals("0", data.get("currentPage").toString());
-        assertEquals("1", data.get("totalItems").toString());
-        assertEquals("1", data.get("totalPages").toString());
+        assertNotNull(data.getData());
+        assertEquals(0, data.getCurrentPage());
+        assertEquals(1, data.getTotalItems());
+        assertEquals(1, data.getTotalPages());
     }
 }

@@ -1,10 +1,9 @@
 package com.example.demo.handler;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+
+import com.example.demo.dto.ResponseDto;
 
 public class ResponseHandler {
 
@@ -12,15 +11,20 @@ public class ResponseHandler {
 
     public static final String FAILED = "Failed!";
 
-    public static ResponseEntity<Object> setResponse(String message, HttpStatus status, Object responseObj,
-            String error) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("message", message);
-        map.put("status", status.value());
-        map.put("data", responseObj);
-        map.put("error", error);
+    private ResponseHandler() {
+        throw new IllegalStateException("ResponseHandler class");
+    }
 
-        return new ResponseEntity<>(map, status);
+    public static <T> ResponseEntity<ResponseDto<T>> setResponse(String message, HttpStatus status, T data,
+            String error) {
+        ResponseDto<T> response = ResponseDto.<T>builder()
+                .status(status.value())
+                .message(message)
+                .error(error)
+                .data(data)
+                .build();
+
+        return new ResponseEntity<>(response, status);
     }
 
 }
