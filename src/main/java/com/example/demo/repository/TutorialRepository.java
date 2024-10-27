@@ -12,7 +12,7 @@ import org.springframework.stereotype.Repository;
 import com.example.demo.model.Tutorial;
 
 @Repository
-public interface TutorialRepository extends JpaRepository<Tutorial, Long>, JpaSpecificationExecutor<Tutorial> {
+public interface TutorialRepository extends JpaRepository<Tutorial, Long>, JpaSpecificationExecutor<Tutorial>, CustomTutorialRepository {
 
     @Query("SELECT t FROM Tutorial t LEFT JOIN FETCH t.category c WHERE t.published = :published")
     Page<Tutorial> findByPublished(boolean published, Pageable pageable);
